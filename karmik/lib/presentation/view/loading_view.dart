@@ -4,8 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../pages/utils/image_assets.dart';
 
 class LoadingView extends StatelessWidget {
-  final String message;
-  const LoadingView({super.key, this.message = 'Getting everything ready'});
+  const LoadingView({super.key});
 
   @override
   Widget build(BuildContext context) {
