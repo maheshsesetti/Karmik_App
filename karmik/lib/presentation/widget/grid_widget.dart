@@ -7,10 +7,11 @@ class GridWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     List<String> images = [
-      "https://static.javatpoint.com/tutorial/flutter/images/flutter-logo.png",
-      "https://static.javatpoint.com/tutorial/flutter/images/flutter-logo.png",
-      "https://static.javatpoint.com/tutorial/flutter/images/flutter-logo.png",
-      "https://static.javatpoint.com/tutorial/flutter/images/flutter-logo.png"
+      "https://images.pexels.com/photos/3348748/pexels-photo-3348748.jpeg",
+      "https://images.pexels.com/photos/3348748/pexels-photo-3348748.jpeg",
+      "https://images.pexels.com/photos/3348748/pexels-photo-3348748.jpeg",
+      "https://images.pexels.com/photos/3348748/"
+          "pexels-photo-3348748.jpeg",
     ];
     return GridView.builder(
       itemCount: images.length,
@@ -30,13 +31,28 @@ class GridWidget extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text("4.56"),
+                  Row(
+                    children: const [
+                      Icon(Icons.star,color: Colors.red,size: 12,),
+                      Text("4.5/5",style: TextStyle(fontSize: 13),)
+                    ],
+                  ),
                   Column(
                     children: [
-                      ClipRect(
-                        child: CircleAvatar(
-                          radius: 40.sp,
-                          child: Image.network(images[index]),
+                      Container(
+                        height: MediaQuery.of(context).size.height /
+                            10,
+                        width:
+                        MediaQuery.of(context).size.width / 4,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.grey[100],
+                          border: Border.all(
+                              color: Colors.white, width: 3),
+                          image: DecorationImage(
+                            image: NetworkImage(images[index]),
+                            fit: BoxFit.cover,
+                          ),
                         ),
                       ),
                       const Text("Shreya sharma"),
@@ -44,7 +60,7 @@ class GridWidget extends StatelessWidget {
                       const Text("Hyderabad")
                     ],
                   ),
-                  const Text("₹250/hr")
+                  const Expanded(child: Text("₹250/hr",style: TextStyle(fontSize: 13)))
                 ],
               ),
               Flexible(
@@ -53,15 +69,18 @@ class GridWidget extends StatelessWidget {
                     gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: 2,
                         crossAxisSpacing: 2.0,
-                        mainAxisSpacing: 2.0),
+                        mainAxisSpacing: 2.0
+                    ),
                     itemBuilder: (BuildContext context, int index) {
-                      return Container(
-                        decoration: ShapeDecoration(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(3),
-                            ),
-                            ),
-                        child: const Text("hello"),
+                      return Text(
+                        "Dust Cleaning",
+                        style: TextStyle(
+                          color: Colors.black,
+                          fontSize: 12.0,
+                          background: Paint()
+                            ..color = Color(0xffc7e5b4)
+                            ..style = PaintingStyle.fill,
+                        ),
                       );
                     }),
               )

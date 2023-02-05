@@ -3,6 +3,7 @@ import 'package:routemaster/routemaster.dart';
 import '../presentation/pages/HomePage/home_page.dart';
 import '../presentation/pages/loadingPage.dart';
 import '../presentation/pages/login/loginPage.dart';
+import '../presentation/pages/profile/profile_page.dart';
 import '../presentation/pages/search/searchPage.dart';
 
 class InitialPageRoutes {
@@ -10,6 +11,7 @@ class InitialPageRoutes {
   static const login = '/login';
   static const homepage = '/homepage';
   static const search = '/search';
+  static const profile = '/profile';
 }
 
 class PageRoutes {
@@ -26,6 +28,7 @@ class PageRoutes {
       InitialPageRoutes.login: (_) => LoginPage(),
       InitialPageRoutes.homepage: (_) => HomePage(),
       InitialPageRoutes.search:(_)=> SearchPage(),
+      InitialPageRoutes.profile:(_)=>ProfilePage(),
     },
     onUnknownRoute: (path) => const Redirect(InitialPageRoutes.login),
   );
