@@ -19,33 +19,29 @@ class SearchView extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             SizedBox(height: 10.h,),
-            InkWell(
-              onTap: (){},
-              child: const Icon(Icons.arrow_back,color: Colors.black,),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    InkWell(
+                      onTap: (){},
+                      child: const Icon(Icons.arrow_back,color: Colors.black,),
+                    ),
+                  ],
+                ),
+                Align(
+                  alignment: Alignment.topRight,
+                  child: InkWell(child: Icon(Icons.filter_alt_outlined,size: 50.sp,),onTap: (){
+                    Routemaster.of(context).push(InitialPageRoutes.profile);
+                  },),
+                )
+              ],
             ),
            SizedBox(height: 10.h,),
-            SizedBox(
-              height: 25.h,
-              child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.grey,
-                    borderRadius: BorderRadius.circular(10.0),
-                  ),
-                  child: Padding(
-                      padding: EdgeInsets.symmetric(
-                          horizontal: 10.sp, vertical: 0.3.sp),
-                      child: TextFormField(
-                        onTap: (){
-                          Routemaster.of(context).push(InitialPageRoutes.profile);
-                        },
-                          decoration: const InputDecoration(
-                            prefixIcon: Icon(
-                              Icons.search_rounded,
-                              color: Colors.black,
-                            ),
-                            border: InputBorder.none,
-                            hintText: "Search for Karmik's or service",
-                          ))))
+            Padding(
+              padding: EdgeInsets.only(left: 15.sp),
+              child: Text("Search Results",style: TextStyle(fontSize: 30.sp),),
             ),
             SizedBox(height: 10.h,),
             const Expanded(child: GridWidget())
