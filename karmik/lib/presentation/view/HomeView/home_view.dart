@@ -18,6 +18,7 @@ class HomeView extends StatefulWidget {
 class _HomeViewState extends State<HomeView> {
   String? _currentAddress;
   Position? _currentPosition;
+  final GlobalKey<ScaffoldState> _key = GlobalKey();
   @override
   void initState() {
     _getCurrentLocation();
@@ -88,38 +89,40 @@ class _HomeViewState extends State<HomeView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+        key: _key,
+        drawer: const DrawerWidget(),
         appBar: PreferredSize(
           preferredSize: Size.fromHeight(80.h),
           child: Container(
             color: Colors.red[700],
             child: Column(
               children: [
-                Padding(
-                  padding: EdgeInsets.only(
-                      top: 15.sp, left: 15.sp, right: 15.sp, bottom: 10.sp),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      InkWell(
-                        onTap: () {},
-                        child: const Icon(
-                          Icons.person_2_outlined,
-                          color: Colors.white,
-                        ),
-                      ),
-                      SizedBox(
-                          height: 120.sp,
-                          child: Image.asset(ImageAssetsPath.logo)),
-                      Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 30.sp),
-                        child: Icon(
-                          Icons.notifications_none_sharp,
-                          size: 45.sp,
-                          color: Colors.white,
-                        ),
-                      )
-                    ],
+                AppBar(
+                  backgroundColor: Colors.red[700],
+                  elevation: 0,
+                  bottomOpacity: 0,
+                  leading: InkWell(
+                    onTap: () {
+                      _key.currentState!.openDrawer();
+                    },
+                    child: const Icon(
+                      Icons.person_2_outlined,
+                      color: Colors.white,
+                    ),
                   ),
+                  title: SizedBox(
+                      height: 120.sp, child: Image.asset(ImageAssetsPath.logo)),
+                  centerTitle: true,
+                  actions: [
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 30.sp),
+                      child: Icon(
+                        Icons.notifications_none_sharp,
+                        size: 45.sp,
+                        color: Colors.white,
+                      ),
+                    )
+                  ],
                 ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -217,5 +220,85 @@ class _HomeViewState extends State<HomeView> {
             ],
           ),
         ));
+  }
+}
+
+class DrawerWidget extends StatelessWidget {
+  const DrawerWidget({
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Drawer(
+      child: ListView(
+        padding: const EdgeInsets.all(0),
+        children: [
+          DrawerHeader(
+            decoration: BoxDecoration(
+              color: Colors.red[700],
+            ), //BoxDecoration
+            child: UserAccountsDrawerHeader(
+              decoration: BoxDecoration(color: Colors.red[700]),
+              accountName: const Text(
+                "Abhishek Mishra",
+                style: TextStyle(fontSize: 18),
+              ),
+              accountEmail: const Text("abhishekm977@gmail.com"),
+              currentAccountPictureSize: Size.square(50),
+              currentAccountPicture: CircleAvatar(
+                backgroundColor: Colors.red[700],
+                child: const Text(
+                  "A",
+                  style: TextStyle(fontSize: 30.0, color: Colors.white),
+                ), //Text
+              ), //circleAvatar
+            ), //UserAccountDrawerHeader
+          ), //DrawerHeader
+          ListTile(
+            leading: const Icon(Icons.person),
+            title: const Text(' My Profile '),
+            onTap: () {
+              Navigator.pop(context);
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.book),
+            title: const Text(' My Course '),
+            onTap: () {
+              Navigator.pop(context);
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.workspace_premium),
+            title: const Text(' Go Premium '),
+            onTap: () {
+              Navigator.pop(context);
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.video_label),
+            title: const Text(' Saved Videos '),
+            onTap: () {
+              Navigator.pop(context);
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.edit),
+            title: const Text(' Edit Profile '),
+            onTap: () {
+              Navigator.pop(context);
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.logout),
+            title: const Text('LogOut'),
+            onTap: () {
+              Navigator.pop(context);
+            },
+          ),
+        ],
+      ),
+    );
   }
 }
