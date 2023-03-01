@@ -1,7 +1,9 @@
 const admin = require("firebase-admin");
+const { getAuth } = require("firebase/auth");
 
 const db = admin.firestore();
-const {validateSignUPData, validateLoginData} = require("../utils/helper");
+const firebase =require("firebase/auth");
+const { validateSignUPData, validateLoginData } = require("../utils/helper");
 
 exports.signUp = (req, res) => {
   const newUser = {
@@ -23,7 +25,7 @@ exports.signUp = (req, res) => {
       console.log("doc is started" + doc);
       if (doc.exists) {
         console.log("status code is 400");
-        return res.status(400).send({ data: "The user id already taken" });
+        return res.status(400).json({ data: "The user id already taken" });
       } else {
         console.log("creating user" + newUser.email);
         let email = newUser.email;
@@ -38,11 +40,11 @@ exports.signUp = (req, res) => {
     .then((data) => {
       console.log("id is " + data.uid);
       userId = data.uid;
-      token = admin.auth().createCustomToken(userId)
+      token = admin.auth().createCustomToken(userId);
       return token;
     })
     .then((idToken) => {
-      token = idToken
+      token = idToken;
       const userCredentials = {
         userId,
         email: newUser.email,
@@ -62,31 +64,76 @@ exports.signUp = (req, res) => {
 };
 
 exports.signIn = (req, res) => {
-  const user={
-    email:req.body.email,
-    password:req.body.password,
-  }
-  const {valid,errors}=validateLoginData(user);
-  if(!valid){
-    return res.status(400).json(errors)
+  const user = {
+    email: req.body.email,
+    password: req.body.password,
+  };
+  const { valid, errors } = validateLoginData(user);
+  if (!valid) {
+    return res.status(400).json(errors);
   }
   let email = user.email;
   let password = user.password;
+  console.log(email);
   admin.auth().getUserByEmail(email);
-  admin.auth().signInWithEmailAndPassword(
-    email,
-    password
-  )
-  .then(data=>{
-    console.log(JSON.stringify(data));
-    const customToken = admin.auth().createCustomToken(data.uid);
-    return customToken;
-  }).then(token=>{
-    return res.json({token});
-  }).catch(err=>{
-    if(err.code=="auth/wrong-password"|| err.code=="auth/user-not-found"){
-      return res.status(403).json({message:"wrong credentials,Please try again"});
+  const auth = getAuth();
+  firebase.signInWithEmailAndPassword(auth,email,password)
+    .then((data) => {
+      console.log(JSON.stringify(data));
+      admin.auth().createCustomToken(data.user.uid);
+      return res.json(data);;
+    })
+    .catch((err) => {
+      if (
+        err.code == "auth/wrong-password" ||
+        err.code == "auth/user-not-found"
+      ) {
+        return res
+          .status(403)
+          .json({ message: "wrong credentials,Please try again" });
+      }
+      return res.status(500).json({ error: err.message });
+    });
+};
+
+exports.logout = (req, res) => {
+  firebase.signOut().then(function () {
+      res.send(null)
+      res.end()
+  }).catch(function (error) {
+    return res.status(500).json({ error: err.message });
+  });
+}
+
+exports.isAuth = (req, res) => {
+  var user = firebase.createUser;
+  if (user) {
+      user.getIdToken(true).then(function (idToken) {
+          res.send(idToken)
+          res.end()
+      }).catch(function (error) {
+        return res.status(500).json({ error: error.message });
+      });
+  } else {
+      //Handle error
+  }
+}
+
+exports.fbAuth = (req,res,next)=>{
+  const token = req.header('Authorization').replace('Bearer', '').trim()
+    var user = firebase.currentUser;
+    if (user) {
+        admin.auth().verifyIdToken(token)
+        .then(function (decodedToken) {
+            if(decodedToken.uid === user.uid)
+            {
+                req.user = user.uid
+                return next()
+            }
+        }).catch(function (error) {
+            //Handle error
+        });
+    } else {
+        console.log("There is no current user.");
     }
-    return res.status(500).json({error:err.code});
-  })
 }
