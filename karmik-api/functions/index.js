@@ -27,11 +27,22 @@ const cors = require("cors");
 const app = express();
 app.use(cors({ origin: true }));
 
-const { signUp, signIn,logout,isAuth } = require("./src/auth/auth");
+const {
+  signUp,
+  signIn,
+  logout,
+  isUserDetails,
+  // isPhoneAuth,
+  // sendOTP,
+  UpdateProfile,
+} = require("./src/auth/auth");
 
 app.get("/", (req, res) => res.status(200).send("Hey there!"));
 app.post("/api/signup", signUp);
 app.post("/api/signin", signIn);
 app.get("/api/signout", logout);
-app.get("/api/isAuth", isAuth);
+app.get("/api/user/details", isUserDetails);
+// app.post("/api/phone", isPhoneAuth);
+// app.post("/api/sendOTP",sendOTP)
+app.post("/api/:id/update",UpdateProfile)
 exports.app = functions.https.onRequest(app);
