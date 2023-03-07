@@ -26,6 +26,12 @@ exports.validateSignUPData = (data) => {
   if (data.password !== data.confirmPassword) {
     errors.confirmPassword = "Password Did not match";
   }
+  if(isEmpty(data.phoneNumber)) {
+    errors.phoneNumber = "Please enter Phone Number"
+  }
+  if(isEmpty(data.displayName)) {
+    errors.displayName = "Please enter Name"
+  }
   return {
     errors,
     valid: Object.keys(errors).length === 0 ? true : false,

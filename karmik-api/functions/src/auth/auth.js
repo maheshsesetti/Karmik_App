@@ -7,14 +7,15 @@ const { validateSignUPData, validateLoginData } = require("../utils/helper");
 
 exports.signUp = (req, res) => {
   const newUser = {
-    email: req.body.user.email,
+    email: req.body.email,
     emailVerified: false,
-    phoneNumber: req.body.user.phone,
-    password: req.body.user.password,
-    confirmPassword: req.body.user.confirmPassword,
-    displayName: req.body.user.name,
+    phoneNumber: req.body.phone,
+    password: req.body.password,
+    confirmPassword: req.body.confirmPassword,
+    displayName: req.body.name,
     userProfile: req.body.user.userProfile ?? "",
     disabled: false,
+    role: "User",
   };
   const { valid, errors } = validateSignUPData(newUser);
   if (!valid) {
@@ -34,14 +35,25 @@ exports.signUp = (req, res) => {
       } else {
         console.log("creating user" + newUser.email);
 
-        const userRecord = admin.auth().createUser(newUser);
+        const userRecord = admin.auth().createUser({
+          email: req.body.user.email,
+          emailVerified: false,
+          phoneNumber: req.body.user.phone,
+          password: req.body.user.password,
+          confirmPassword: req.body.user.confirmPassword,
+          displayName: req.body.user.name,
+          userProfile: req.body.user.userProfile ?? "",
+          disabled: false,
+          role: "User",
+        });
         return userRecord;
       }
     })
     .then((data) => {
       console.log("id is " + data.uid);
       userId = data.uid;
-      token = admin.auth().createCustomToken(userId);
+      const expiresIn = 86400;
+      token = admin.auth().createCustomToken(userId, { expiresIn });
       return token;
     })
     .then((idToken) => {
@@ -55,6 +67,7 @@ exports.signUp = (req, res) => {
         displayName: newUser.displayName,
         phoneNumber: newUser.phoneNumber,
         userProfile: newUser.userProfile,
+        role: "User",
       };
       db.doc(`/users/${userId}`).set(userCredentials);
     })
@@ -117,123 +130,102 @@ exports.logout = (req, res) => {
 
 exports.isUserDetails = async (req, res) => {
   try {
-    const user = await admin.auth().getUserByEmail(req.body.user.email);
-    res.json(user);
-  } catch (error) {
-    res.json({ message: "cannot fetch user data" });
-  }
-};
-exports.isPhoneAuth = async (req, res) => {
-  try {
-    const userDetails = {
-      phoneNumber: req.body.user.phone,
-    };
-    let phone = userDetails.phoneNumber;
-    const applicationVerifier = new RecaptchaVerifier("recaptcha-container");
-    console.log(applicationVerifier);
-    const auth = getAuth();
-    const provider = new PhoneAuthProvider(auth);
-    const verificationId = await provider.verifyPhoneNumber(
-      phone,
-      applicationVerifier
-    );
-    const phoneCredential = PhoneAuthProvider.credential(
-      verificationId,
-      verificationCode
-    );
-    const user = await firebase.signInWithCredential(auth, phone);
-    try {
-      const token = await admin.auth().createCustomToken(data.user.uid);
-      res.json(token);
-    } catch (error) {
-      console.log(e);
-      res.json({ message: "Error Generating Token!Please try again" });
+    const header = req["currentUser"];
+    if (header) {
+      console.log(header["uid"]);
+      const user = await admin.auth().getUserByEmail(req.body.email);
+      res.json(user);
+    } else {
+      res.status(403).send("Unauthorized");
     }
-    res.json(user);
   } catch (error) {
-    res.json({ message: "no user record found" });
-  }
-};
-
-exports.sendOTP = async (req, res) => {
-  try {
-    const userDetails = {
-      phoneNumber: req.body.user.phone,
-    };
-    let phone = userDetails.phoneNumber;
-    const applicationVerifier = new firebase.RecaptchaVerifier(
-      "recaptcha-container"
-    );
-    console.log(applicationVerifier);
-    const auth = getAuth();
-    const provider = new PhoneAuthProvider(auth);
-    const verificationId = await provider.verifyPhoneNumber(
-      phone,
-      applicationVerifier
-    );
-    res.json({ otp: verificationId });
-  } catch (error) {
-    res.json({ message: error.message });
+    console.error(error);
+    res.status(401).send("Unauthorized");
   }
 };
 
 exports.UpdateProfile = async (req, res) => {
-  const newUser = {
-    email: req.body.user.email,
-    emailVerified: false,
-    phoneNumber: req.body.user.phone,
-    password: req.body.user.password,
-    confirmPassword: req.body.user.confirmPassword,
-    displayName: req.body.user.name,
-    userProfile: req.body.user.userProfile ?? "",
-    disabled: false,
-  };
-  const { valid, errors } = validateSignUPData(newUser);
-  if (!valid) {
-    console.log("status is 400");
-    return res.status(400).json(errors);
+  const header = req["currentUser"];
+  console.log(header);
+  if (!header) {
+    res.status(403).send("Unauthorized");
+  } else {
+    const newUser = {
+      email: req.body.email,
+      emailVerified: false,
+      phoneNumber: req.body.phone,
+      password: req.body.password,
+      confirmPassword: req.body.confirmPassword,
+      displayName: req.body.name,
+      userProfile: req.body.userProfile ?? "",
+      disabled: false,
+    };
+    const { valid, errors } = validateSignUPData(newUser);
+    if (!valid) {
+      console.log("status is 400");
+      return res.status(400).json(errors);
+    }
+    let userId;
+    db.collection("user")
+      .where("email", "==", newUser.email)
+      .get()
+      .then((doc) => {
+        console.log("doc is started" + req.params.id);
+        if (doc.exists) {
+          console.log("status code is 400");
+          return res.status(400).json({ data: "The user id already taken" });
+        } else {
+          console.log("creating user" + newUser);
+          const userRecord = admin.auth().updateUser(req.params.id, newUser);
+          return userRecord;
+        }
+      })
+      .then((data) => {
+        console.log("id is " + data.uid);
+        userId = data.uid;
+      })
+      .then((userRecord) => {
+        userId = req.params.id;
+        const userCredentials = {
+          userId: userId,
+          email: newUser.email,
+          createdAt: new Date().toISOString(),
+          password: newUser.password,
+          confirmPassword: newUser.confirmPassword,
+          displayName: newUser.displayName,
+          phoneNumber: newUser.phoneNumber,
+          userProfile: newUser.userProfile,
+        };
+        db.doc(`/users/${req.params.id}`).update(userCredentials);
+      })
+      .then(() => {
+        return res
+          .status(201)
+          .json({ message: "Profile updated successfully" });
+      })
+      .catch((err) => {
+        if (err.code == "auth/email-already-in-use") {
+          return res.status(400).json({ email: "Email Already Exist!" });
+        }
+        return res.status(500).json({ error: err.message });
+      });
   }
-  let token;
-  let userId;
-  db.collection("user")
-    .where("email", "==", newUser.email)
-    .get()
-    .then((doc) => {
-      console.log("doc is started" + req.params.id);
-      if (doc.exists) {
-        console.log("status code is 400");
-        return res.status(400).json({ data: "The user id already taken" });
-      } else {
-        console.log("creating user" + newUser);
-        const userRecord = admin.auth().updateUser(req.params.id, newUser);
-        return userRecord;
-      }
+};
+
+exports.RefreshToken = async (req, res) => {
+  // Exchange a refresh token for a new authentication token
+  admin
+    .auth()
+    .createCustomToken(req.body.uid)
+    .then((refreshToken) => {
+      // Use the refresh token to generate a new authentication token
+      return admin.auth().createCustomToken(req.body.uid, { refreshToken });
     })
-    .then((data) => {
-      console.log("id is " + data.uid);
-      userId = data.uid;
+    .then((customToken) => {
+      // Use the new authentication token
+      res.json({ token: customToken });
     })
-    .then((userRecord) => {
-      userId = req.params.id;
-      const userCredentials = {
-        userId: userId,
-        email: newUser.email,
-        createdAt: new Date().toISOString(),
-        password: newUser.password,
-        confirmPassword: newUser.confirmPassword,
-        displayName: newUser.displayName,
-        phoneNumber: newUser.phoneNumber,
-        userProfile: newUser.userProfile,
-      };
-      db.doc(`/users/${req.params.id}`).update(userCredentials);
-    })
-    .then(() => {
-      return res.status(201).json({ message: "Profile updated successfully" });
-    })
-    .catch((err) => {
-      if (err.code == "auth/email-already-in-use") {
-        return res.status(400).json({ email: "Email Already Exist!" });
-      }
-      return res.status(500).json({ error: err.message });
+    .catch((error) => {
+      console.log("Error refreshing token:", error);
     });
 };
