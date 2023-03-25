@@ -34,6 +34,7 @@ const {
   isUserDetails,
   UpdateProfile,
   RefreshToken,
+  profileCreate
 } = require("./src/auth/auth");
 
 app.use(decodeIDToken);
@@ -64,5 +65,6 @@ app.get("/api/signout", logout);
 app.get("/api/user/details", isUserDetails);
 app.post("/api/:id/update", UpdateProfile);
 app.post("/api/refresh_token", RefreshToken);
+app.post("/api/:id/create_profile", profileCreate);
 
 exports.app = functions.https.onRequest(app);

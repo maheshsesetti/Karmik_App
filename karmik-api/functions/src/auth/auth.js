@@ -195,6 +195,7 @@ exports.UpdateProfile = async (req, res) => {
           displayName: newUser.displayName,
           phoneNumber: newUser.phoneNumber,
           userProfile: newUser.userProfile,
+          
         };
         db.doc(`/users/${req.params.id}`).update(userCredentials);
       })
@@ -229,3 +230,101 @@ exports.RefreshToken = async (req, res) => {
       console.log("Error refreshing token:", error);
     });
 };
+
+
+exports.profileCreate = (req,res) => {
+  const header = req["currentUser"];
+  console.log(header);
+  if (!header) {
+    res.status(403).send("Unauthorized");
+  } else {
+    let userId;
+    const newUser = {
+      userId: userId,
+      email: req.body.email?? "",
+      emailVerified: false,
+      phoneNumber: req.body.phone,
+      password: req.body.password,
+      confirmPassword: req.body.confirmPassword,
+      displayName: req.body.name,
+      userProfile: req.body.userProfile ?? "",
+      disabled: false,
+      firstName: req.body.firstName ?? "",
+      lastName: req.body.lastName ?? "",
+      fatherName: req.body.fatherName ?? "",
+      guardianName:req.body.guardianName??"",
+      fullAddress:req.body.fullAddress,
+      aadharCardNo:req.body.aadharCardNo,
+      education:req.body.education,
+      experienceArea:req.body.experienceArea,
+      totalNOE:req.body.totalNOE ?? 0,
+      areasWorked:req.body.areasWorked ??"",
+      majorRefClients:req.body.majorRefClients ?? "",
+      familyMembersName: req.body.familyMembersName??"",
+      familyNo:req.body.familyMembersName??"",
+      friendName:req.body.friendName??"",
+      friendNo:req.body.friendNo??"",
+      criminalHistory:req.body.criminalHistory??"",
+      pphd:req.body.pphd
+      
+    };
+    db.collection("user")
+      .where("email", "==", newUser.email)
+      .get()
+      .then((doc) => {
+        console.log("doc is started" + req.params.id);
+        if (doc.exists) {
+          console.log("status code is 400");
+          return res.status(400).json({ data: "The user id already taken" });
+        } else {
+          console.log("creating user" + newUser);
+          const userRecord = admin.auth().updateUser(req.params.id, newUser);
+          return userRecord;
+        }
+      })
+      .then((data) => {
+        console.log("id is " + data.uid);
+        userId = data.uid;
+      })
+      .then((userRecord) => {
+        userId = req.params.id;
+        const newUser = {
+          userId: userId,
+          email: req.body.email?? "",
+          emailVerified: false,
+          phoneNumber: req.body.phone,
+          displayName: req.body.name??"",
+          userProfile: req.body.userProfile ?? "",
+          disabled: false,
+          firstName: req.body.firstName ?? "",
+          lastName: req.body.lastName ?? "",
+          fatherName: req.body.fatherName ?? "",
+          guardianName:req.body.guardianName??"",
+          fullAddress:req.body.fullAddress??"",
+          aadharCardNo:req.body.aadharCardNo??"",
+          education:req.body.education??"",
+          experienceArea:req.body.experienceArea??"",
+          totalNOE:req.body.totalNOE ?? 0,
+          areasWorked:req.body.areasWorked ??"",
+          majorRefClients:req.body.majorRefClients ?? "",
+          familyMembersName: req.body.familyMembersName??"",
+          familyNo:req.body.familyMembersName??"",
+          friendName:req.body.friendName??"",
+          friendNo:req.body.friendNo??"",
+          criminalHistory:req.body.criminalHistory??"",
+          pphd:req.body.pphd??""
+          
+        };
+        db.doc(`/users/${req.params.id}`).update(newUser);
+      }).then(() => {
+        return res
+          .status(201)
+          .json({ message: "Profile updated successfully" });
+      }).catch((err) => {
+        if (err.code == "auth/email-already-in-use") {
+          return res.status(400).json({ email: "Email Already Exist!" });
+        }
+        return res.status(500).json({ error: err.message });
+      });
+  }
+}
